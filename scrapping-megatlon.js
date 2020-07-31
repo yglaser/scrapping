@@ -1,18 +1,41 @@
 
 const puppeteer = require('puppeteer');
-const { debug } = require('console');
 const CronJob = require('cron').CronJob;
 
 
+module.exports = async ({ page, request }) => {}
+
+
 //funcion selecciona combo con xpaths 
-async function fillSelectWithXPath(page, xpathcombo, xpathvalue) {
+async function fillSelectWithXPathDia(page, xpathcombo, xpathvalue) {
+
   var combo = await page.waitForXPath(xpathcombo, { timeout: 120000 })
   var id_combo = await combo.getProperty("id")
   var value = combo ? await page.waitForXPath(xpathvalue, { timeout: 120000 }) : "no data"
+ 
+
   if (value !== "no data") {
+    
     var valueCombo = await value.getProperty("value")
     await page.select(`select#${id_combo._remoteObject.value}`, valueCombo._remoteObject.value)
   }
+  console.log( id_combo._remoteObject.value, valueCombo._remoteObject.value)
+}
+
+async function fillSelectWithXPathSucursal(page, xpathcombo, xpathvalue) {
+
+  var combo = await page.waitForXPath(xpathcombo, { timeout: 120000 })
+  var id_combo = await combo.getProperty("id")
+  var value = combo ? await page.waitForXPath(xpathvalue, { timeout: 120000 }) : "no data"
+
+  console.log(text._remoteObject.value, n)
+  if (value !== "no data") {
+    var valueCombo = await value.getProperty("value")
+    await page.click (`select#${id_combo._remoteObject.value}`)
+    await page.type(`select#${id_combo._remoteObject.value}`, valueCombo._remoteObject.value)
+    await page.click(`select#${id_combo._remoteObject.value}`, valueCombo._remoteObject.value)
+  }
+  console.log( id_combo._remoteObject.value, valueCombo._remoteObject.value)
 }
 
 //scrapping 
@@ -32,6 +55,12 @@ async function scrappingMegatlon () {
         email: "yaninaglaser@gmail.com"
       }
   
+      const datosReserva = { 
+        dia: '//*[@id="dia"]/option[2]',
+        horario: '//*[@id="horarios"]/option[12]',
+        sucursal: '//*[@id="sucursal"]/option[9]',
+        profe: "Norman"
+      }
       // pagina 1
       await page.goto(args);
       await page.type('input#identityNumber', datos.dni)
@@ -46,24 +75,25 @@ async function scrappingMegatlon () {
       await page.waitForNavigation();
   
       // pagina 3
+      await page.type('input#profe_sugerido', datosReserva.profe)
       await page.waitForFunction(() => document.querySelector("#dia").length > 0);
-      fillSelectWithXPath(page, '//*[@id="dia"]', '//*[@id="dia"]/option[2]')
+      await fillSelectWithXPathDia(page, '//*[@id="dia"]', datosReserva.dia)
       await page.waitForFunction(() => document.querySelector("#sucursal").length > 0);
-      fillSelectWithXPath(page, '//*[@id="sucursal"]', '//*[@id="sucursal"]/option[2]') //este combo a veces se llena y a veces no
+      await fillSelectWithXPathSucursal(page, '//*[@id="sucursal"]', datosReserva.sucursal) 
+      await page.select('select#sucursal','Megatlon Barracas')//este combo a veces se llena y a veces no
       await page.waitForFunction(() => document.querySelector("#horarios").length > 0);
-      fillSelectWithXPath(page, '//*[@id="horarios"]', '//*[@id="horarios"]/option[9]')
-      await page.type('input#profe_sugerido', 'Norman')
-      await page.waitForSelector("#sucursal", { visible: true });
-      await page.waitForSelector('button[type="submit"]'); // lo que pasa es que cuando aprieta este boton no submitea
-  
+      await fillSelectWithXPathDia(page, '//*[@id="horarios"]', datosReserva.horario)   
+      await page.waitForSelector('button[type="submit"]'); 
+     /* await page.evaluate(() => {
+        document.querySelector('button[type="submit"]').click();
+    });*/
     }).catch(function (error) {
       console.error(error);
     });
   
 }
-
-
-const job = new CronJob('00 00 00 * * * *', function() {
+scrappingMegatlon()
+const job = new CronJob('00 00 00  * * *', function() {
 	const d = new Date();
   console.log('At midnigth', d);
   scrappingMegatlon()

@@ -21,6 +21,9 @@
   },
   "homepage": "https://github.com/lizarq/scrapping#readme",
   "dependencies": {
-    "nodemailer": "^6.4.11"
+    "cronjob": "^0.1.0",
+    "express": "^4.17.1",
+    "nodemailer": "^6.4.11",
+    "puppeteer": "^5.2.1"
   }
 }

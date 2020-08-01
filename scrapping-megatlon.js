@@ -4,17 +4,16 @@ const puppeteer = require('puppeteer');
 require('dotenv').config()
 
 //function select first available 
-async function firstOptAvailable(page,id){
+async function firstOptAvailable(page, id) {
   const select = await page.$(`#${id}`);
   await page.evaluate(select => {
-    for(let option of select.options)
-    {
-      if(!option.disabled) {
+    for (let option of select.options) {
+      if (!option.disabled) {
         option.selected = true;
       }
     }
   }, select);
-  const value = await page.evaluate(select => select.value, select); 
+  const value = await page.evaluate(select => select.value, select);
   console.log(value);
 }
 
@@ -26,8 +25,8 @@ async function fillSelectWithXPathDia(page, xpathcombo, xpathvalue) {
   var value = combo ? await page.waitForXPath(xpathvalue, { timeout: 120000 }) : "no data"
   var disabled = await value.getProperty('disabled')
 
-  
-  if(disabled._remoteObject.value === true){ 
+
+  if (disabled._remoteObject.value === true) {
     var value = await page.waitForXPath('//*[@id="horarios"]/option[12]')
     const disabled = await value.getProperty('disabled')
   }
@@ -49,10 +48,10 @@ async function fillSelectWithXPathSucursal(page, xpathcombo, xpathvalue) {
     var valueCombo = await value.getProperty("value")
     await page.click(`select#${id_combo._remoteObject.value}`, 'Megatlon Belgrano')
     await page.type(`select#${id_combo._remoteObject.value}`, 'Megatlon Belgrano')
-   }
-  //console.log( id_combo._remoteObject.value, valueCombo._remoteObject.value)
-  return disabled._remoteObject.value
- 
+  }
+  console.log(id_combo._remoteObject.value, valueCombo._remoteObject.value)
+  return disabled._remoteObject.value //sirve para mostrar si la opcion no esta disponible, esto es porque quiero una opcion especifica
+
 }
 
 //scrapping 
@@ -71,8 +70,8 @@ const scrapping = async function scrappingMegatlon() {
         tel: process.env.TEL,
         email: process.env.EMAIL
       }
-  
-      const datosReserva = { 
+
+      const datosReserva = {
         dia: '//*[@id="dia"]/option[2]',
         horario: '//*[@id="horarios"]/option[12]',
         sucursal: '//*[@id="sucursal"]/option[9]',
@@ -83,41 +82,41 @@ const scrapping = async function scrappingMegatlon() {
       await page.type('input#identityNumber', datos.dni)
       await page.keyboard.press('Enter');
       await page.waitForNavigation();
-  
+
       // pagina 2
       await page.type('input#nombreApellido', datos.name)
       await page.type('input#telefono', datos.tel)
       await page.type('input#email', datos.email)
       await page.keyboard.press('Enter');
       await page.waitForNavigation();
-  
+
       // pagina 3
       await page.type('input#profe_sugerido', datosReserva.profe)
       await page.waitForFunction(() => document.querySelector("#dia").length > 0);
       await fillSelectWithXPathDia(page, '//*[@id="dia"]', datosReserva.dia)
       await page.waitForFunction(() => document.querySelector("#sucursal").length > 0);
-      const disabledSucursal = await fillSelectWithXPathSucursal(page, '//*[@id="sucursal"]', datosReserva.sucursal) 
-      
+      const disabledSucursal = await fillSelectWithXPathSucursal(page, '//*[@id="sucursal"]', datosReserva.sucursal)
+
       await page.waitForFunction(() => document.querySelector("#horarios").length > 0);
-      const disabledHs = await fillSelectWithXPathDia(page, '//*[@id="horarios"]', datosReserva.horario)   
-      if(disabledSucursal || disabledHs){
-        console.log("algo fallo no hay horarios o sucursal disponible", "sucursal:", disabledSucursal,  "horario:",disabledHs)
-        browser.close()   
-      }else{ 
+      const disabledHs = await fillSelectWithXPathDia(page, '//*[@id="horarios"]', datosReserva.horario)
+      if (disabledSucursal || disabledHs) {
+        console.log("algo fallo no hay horarios o sucursal disponible", "sucursal:", disabledSucursal, "horario:", disabledHs)
+        browser.close()
+      } else {
         await page.evaluate(() => {
-        document.querySelector('button[type="submit"]').click();
-       });    
-       browser.close()   
+          document.querySelector('button[type="submit"]').click();
+        });
+        browser.close()
       }
-   
-   
+
+
     }).catch(function (error) {
       console.error(error);
     });
-  
+
 }
 
 
 
 
-module.exports = {scrapping}
+module.exports = { scrapping }

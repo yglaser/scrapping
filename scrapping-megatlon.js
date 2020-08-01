@@ -1,45 +1,61 @@
 
 const puppeteer = require('puppeteer');
 const CronJob = require('cron').CronJob;
+require('dotenv').config()
 
-
-module.exports = async ({ page, request }) => {}
-
+//function select first available 
+async function firstOptAvailable(page,id){
+  const select = await page.$(`#${id}`);
+  await page.evaluate(select => {
+    for(let option of select.options)
+    {
+      if(!option.disabled) {
+        option.selected = true;
+      }
+    }
+  }, select);
+  const value = await page.evaluate(select => select.value, select); 
+  console.log(value);
+}
 
 //funcion selecciona combo con xpaths 
 async function fillSelectWithXPathDia(page, xpathcombo, xpathvalue) {
-
   var combo = await page.waitForXPath(xpathcombo, { timeout: 120000 })
   var id_combo = await combo.getProperty("id")
+  var id = id_combo._remoteObject.value
   var value = combo ? await page.waitForXPath(xpathvalue, { timeout: 120000 }) : "no data"
- 
+  var disabled = await value.getProperty('disabled')
 
+  
+  if(disabled._remoteObject.value === true){ 
+    var value = await page.waitForXPath('//*[@id="horarios"]/option[12]')
+    const disabled = await value.getProperty('disabled')
+  }
   if (value !== "no data") {
-    
     var valueCombo = await value.getProperty("value")
     await page.select(`select#${id_combo._remoteObject.value}`, valueCombo._remoteObject.value)
   }
-  console.log( id_combo._remoteObject.value, valueCombo._remoteObject.value)
+  return disabled._remoteObject.value
 }
 
 async function fillSelectWithXPathSucursal(page, xpathcombo, xpathvalue) {
 
   var combo = await page.waitForXPath(xpathcombo, { timeout: 120000 })
   var id_combo = await combo.getProperty("id")
+  var id = id_combo._remoteObject.value
   var value = combo ? await page.waitForXPath(xpathvalue, { timeout: 120000 }) : "no data"
-
-  console.log(text._remoteObject.value, n)
+  var disabled = await value.getProperty('disabled')
   if (value !== "no data") {
     var valueCombo = await value.getProperty("value")
-    await page.click (`select#${id_combo._remoteObject.value}`)
-    await page.type(`select#${id_combo._remoteObject.value}`, valueCombo._remoteObject.value)
-    await page.click(`select#${id_combo._remoteObject.value}`, valueCombo._remoteObject.value)
-  }
+    await page.select(`select#${id_combo._remoteObject.value}`, 'Megatlon Belgrano')
+   }
   console.log( id_combo._remoteObject.value, valueCombo._remoteObject.value)
+  return disabled._remoteObject.value
+ 
 }
 
 //scrapping 
-async function scrappingMegatlon () {
+const scrapping = async function scrappingMegatlon () {
   await puppeteer.launch({
     headless: false, args: ['--no-sandbox', '--disable-setuid-sandbox',
       '--window-size=1920,1080',
@@ -49,10 +65,10 @@ async function scrappingMegatlon () {
       const page = await browser.newPage();
       const args = "https://megatlon.com/clases-online";
       const datos = {
-        dni: "35366603",
-        name: "yanina glaser",
-        tel: "1138542914",
-        email: "yaninaglaser@gmail.com"
+        dni: process.env.DNI,
+        name: process.env.NAME,
+        tel: process.env.TEL,
+        email: process.env.EMAIL
       }
   
       const datosReserva = { 
@@ -79,24 +95,33 @@ async function scrappingMegatlon () {
       await page.waitForFunction(() => document.querySelector("#dia").length > 0);
       await fillSelectWithXPathDia(page, '//*[@id="dia"]', datosReserva.dia)
       await page.waitForFunction(() => document.querySelector("#sucursal").length > 0);
-      await fillSelectWithXPathSucursal(page, '//*[@id="sucursal"]', datosReserva.sucursal) 
-      await page.select('select#sucursal','Megatlon Barracas')//este combo a veces se llena y a veces no
+      const disabledSucursal = await fillSelectWithXPathSucursal(page, '//*[@id="sucursal"]', datosReserva.sucursal) 
+      
       await page.waitForFunction(() => document.querySelector("#horarios").length > 0);
-      await fillSelectWithXPathDia(page, '//*[@id="horarios"]', datosReserva.horario)   
-      await page.waitForSelector('button[type="submit"]'); 
-     /* await page.evaluate(() => {
+      const disabledHs = await fillSelectWithXPathDia(page, '//*[@id="horarios"]', datosReserva.horario)   
+      if(disabledSucursal || disabledHs){
+        console.log("algo fallo no hay horarios o sucursal disponible")
+      }else{ 
+        await page.evaluate(() => {
         document.querySelector('button[type="submit"]').click();
-    });*/
+       });       
+        await page.waitForSelector('button[type="submit"]'); 
+
+      }
+   
+    browser.close()
     }).catch(function (error) {
       console.error(error);
     });
   
 }
-scrappingMegatlon()
+
 const job = new CronJob('00 00 00  * * *', function() {
 	const d = new Date();
   console.log('At midnigth', d);
   scrappingMegatlon()
 });
 console.log('After job instantiation');
-job.start();
+const schedule = job.start();
+
+module.exports = {scrapping, schedule, job}

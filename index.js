@@ -6,4 +6,5 @@ app.listen(app.get('port'), () => {
     //scrapping.scrapping()
     scrapping.job.start()
     console.log("running on port" )
+    
 })

@@ -47,9 +47,10 @@ async function fillSelectWithXPathSucursal(page, xpathcombo, xpathvalue) {
   var disabled = await value.getProperty('disabled')
   if (value !== "no data") {
     var valueCombo = await value.getProperty("value")
-    await page.select(`select#${id_combo._remoteObject.value}`, 'Megatlon Belgrano')
+    await page.click(`select#${id_combo._remoteObject.value}`, 'Megatlon Belgrano')
+    await page.type(`select#${id_combo._remoteObject.value}`, 'Megatlon Belgrano')
    }
-  console.log( id_combo._remoteObject.value, valueCombo._remoteObject.value)
+  //console.log( id_combo._remoteObject.value, valueCombo._remoteObject.value)
   return disabled._remoteObject.value
  
 }
@@ -100,16 +101,16 @@ const scrapping = async function scrappingMegatlon() {
       await page.waitForFunction(() => document.querySelector("#horarios").length > 0);
       const disabledHs = await fillSelectWithXPathDia(page, '//*[@id="horarios"]', datosReserva.horario)   
       if(disabledSucursal || disabledHs){
-        console.log("algo fallo no hay horarios o sucursal disponible")
+        console.log("algo fallo no hay horarios o sucursal disponible", "sucursal:", disabledSucursal,  "horario:",disabledHs)
+        browser.close()   
       }else{ 
         await page.evaluate(() => {
         document.querySelector('button[type="submit"]').click();
-       });       
-        await page.waitForSelector('button[type="submit"]'); 
-
+       });    
+       browser.close()   
       }
    
-    browser.close()
+   
     }).catch(function (error) {
       console.error(error);
     });

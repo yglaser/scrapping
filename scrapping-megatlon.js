@@ -1,6 +1,6 @@
 
 const puppeteer = require('puppeteer');
-const CronJob = require('cron').CronJob;
+
 require('dotenv').config()
 
 //function select first available 
@@ -115,13 +115,7 @@ const scrapping = async function scrappingMegatlon () {
     });
   
 }
+scrapping
 
-const job = new CronJob('00 00 00  * * *', function() {
-	const d = new Date();
-  console.log('At midnigth', d);
-  scrappingMegatlon()
-});
-console.log('After job instantiation');
-const schedule = job.start();
 
-module.exports = {scrapping, schedule, job}
+module.exports = {scrapping}

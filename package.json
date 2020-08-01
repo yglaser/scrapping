@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
     "scrapping": "nodemon scrapping-megatlon.js",
-    "start": "node scrapping/index.js"
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",

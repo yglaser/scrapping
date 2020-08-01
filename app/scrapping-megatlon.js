@@ -57,11 +57,13 @@ async function fillSelectWithXPathSucursal(page, xpathcombo, xpathvalue) {
 //scrapping 
 const scrapping = async function scrappingMegatlon() {
   await puppeteer.launch({
-    headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox',
+    ignoreDefaultArgs: ['--disable-extensions'],
+    headless: false, args: ['--no-sandbox', '--disable-setuid-sandbox',
       '--window-size=1920,1080',
       '--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"']
   })
     .then(async browser => {
+      
       const page = await browser.newPage();
       const args = "https://megatlon.com/clases-online";
       console.log("corriendo en" + args)

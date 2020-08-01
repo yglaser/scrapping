@@ -55,7 +55,7 @@ async function fillSelectWithXPathSucursal(page, xpathcombo, xpathvalue) {
 }
 
 //scrapping 
-const scrapping = async function scrappingMegatlon () {
+const scrapping = async function scrappingMegatlon() {
   await puppeteer.launch({
     headless: false, args: ['--no-sandbox', '--disable-setuid-sandbox',
       '--window-size=1920,1080',
@@ -116,7 +116,7 @@ const scrapping = async function scrappingMegatlon () {
   
 }
 
-scrapping
+
 
 
 module.exports = {scrapping}
